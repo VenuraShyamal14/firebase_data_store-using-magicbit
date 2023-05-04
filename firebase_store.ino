@@ -67,18 +67,13 @@ void setup(){
 
 void loop(){
 
-  int new_val;
+
   if (Firebase.ready() && signupOK && (millis() - sendDataPrevMillis > 1000 || sendDataPrevMillis == 0)){
     sendDataPrevMillis = millis();
       pot_val=analogRead(39);
-      if (pot_val <2000){
-        new_val=0;
-      }
-      else{
-        new_val=1;
-      }
+      
     // Write an Int number on the database path test/int
-    if (Firebase.RTDB.setInt(&fbdo, "test/pot_value", new_val)){
+    if (Firebase.RTDB.setInt(&fbdo, "test/pot_value", pot_val)){
       Serial.println("PASSED");
     }
     else {
@@ -86,7 +81,7 @@ void loop(){
       Serial.println("REASON: " + fbdo.errorReason());
     }
   }
-  if (Firebase.RTDB.getInt(&fbdo, "/test/pot_value")) {
+  if (Firebase.RTDB.getInt(&fbdo, "/test/led")) {
   if (fbdo.dataType() == "int") {
     int intValue = fbdo.intData();
     if (intValue==1){
