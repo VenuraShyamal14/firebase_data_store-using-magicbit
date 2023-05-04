@@ -24,7 +24,8 @@ FirebaseAuth auth;
 FirebaseConfig config;
 
 unsigned long sendDataPrevMillis = 0;
-int count = 0;
+
+float pot_val = 0;
 bool signupOK = false;
 
 void setup(){
@@ -60,32 +61,45 @@ void setup(){
   
   Firebase.begin(&config, &auth);
   Firebase.reconnectWiFi(true);
+
+  pinMode(16,OUTPUT);
 }
 
 void loop(){
-  if (Firebase.ready() && signupOK && (millis() - sendDataPrevMillis > 5000 || sendDataPrevMillis == 0)){
+
+  int new_val;
+  if (Firebase.ready() && signupOK && (millis() - sendDataPrevMillis > 1000 || sendDataPrevMillis == 0)){
     sendDataPrevMillis = millis();
+      pot_val=analogRead(39);
+      if (pot_val <2000){
+        new_val=0;
+      }
+      else{
+        new_val=1;
+      }
     // Write an Int number on the database path test/int
-    if (Firebase.RTDB.setInt(&fbdo, "test/int", count)){
+    if (Firebase.RTDB.setInt(&fbdo, "test/pot_value", new_val)){
       Serial.println("PASSED");
-      Serial.println("PATH: " + fbdo.dataPath());
-      Serial.println("TYPE: " + fbdo.dataType());
-    }
-    else {
-      Serial.println("FAILED");
-      Serial.println("REASON: " + fbdo.errorReason());
-    }
-    count++;
-    
-    // Write an Float number on the database path test/float
-    if (Firebase.RTDB.setFloat(&fbdo, "test/float", 0.01 + random(0,100))){
-      Serial.println("PASSED");
-      Serial.println("PATH: " + fbdo.dataPath());
-      Serial.println("TYPE: " + fbdo.dataType());
     }
     else {
       Serial.println("FAILED");
       Serial.println("REASON: " + fbdo.errorReason());
     }
   }
+  if (Firebase.RTDB.getInt(&fbdo, "/test/pot_value")) {
+  if (fbdo.dataType() == "int") {
+    int intValue = fbdo.intData();
+    if (intValue==1){
+      digitalWrite(16,HIGH);
+      }
+    else{
+        digitalWrite(16,LOW);
+      }
+    Serial.println(intValue);
+  }
+}
+else {
+  Serial.println(fbdo.errorReason());
+}
+ 
 }
